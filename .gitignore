@@ -11,9 +11,6 @@ dist/
 build/
 *.egg-info/
 
-# Rust build artifacts
-engine/target/
-
 # Editor / OS files
 .DS_Store
 Thumbs.db
