@@ -1,0 +1,5 @@
+pipeline: pfnn
+sim:
+  dt: 0.0166667
+model:
+  name: pfnn

@@ -1,0 +1,7 @@
+pipeline: repulsive_shell
+sim:
+  dt: 0.0166667
+behavior:
+  name: repulsive_shell
+  radius: 1.0
+  strength: 2.0

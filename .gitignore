@@ -1,0 +1,21 @@
+.venv/
+.ropeproject/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+dist/
+build/
+*.egg-info/
+
+# Rust build artifacts
+engine/target/
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
