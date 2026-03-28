@@ -40,3 +40,6 @@ class Particles:
 
     def velocities_numpy(self) -> np.ndarray:
         return self.v.to_numpy()
+
+    def inv_mass_numpy(self) -> np.ndarray:
+        return self.inv_mass.to_numpy()

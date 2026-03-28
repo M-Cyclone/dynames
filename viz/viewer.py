@@ -27,15 +27,10 @@ PINNED_POINT = "#ffcb6b"
 ScreenPoint: TypeAlias = tuple[float, float]
 
 
-class SupportsFieldToNumpy(Protocol):
-    def to_numpy(self) -> np.ndarray: ...
-
-
 class SupportsViewerParticles(Protocol):
-    inv_mass: SupportsFieldToNumpy
-
     def positions_numpy(self) -> np.ndarray: ...
     def velocities_numpy(self) -> np.ndarray: ...
+    def inv_mass_numpy(self) -> np.ndarray: ...
 
 
 class SupportsViewerScene(Protocol):
@@ -82,7 +77,7 @@ class DCCViewer(tk.Tk):
             self.scene, self.particles = scene_factory()
             self.positions = self.particles.positions_numpy()
             self.velocities = self.particles.velocities_numpy()
-            self.inv_mass = self.particles.inv_mass.to_numpy()
+            self.inv_mass = self.particles.inv_mass_numpy()
             self.grid_width, self.grid_height = self._infer_grid_shape(
                 self.positions.shape[0]
             )
@@ -176,12 +171,7 @@ class DCCViewer(tk.Tk):
         viewport_shell.columnconfigure(0, weight=1)
         viewport_shell.rowconfigure(0, weight=1)
 
-        self.canvas = tk.Canvas(
-            viewport_shell,
-            background=BACKGROUND,
-            highlightthickness=0,
-            cursor="crosshair",
-        )
+        self.canvas = tk.Canvas(viewport_shell, background=BACKGROUND, highlightthickness=0, cursor="crosshair")
         self.canvas.grid(row=0, column=0, sticky="nsew")
         self.canvas.bind("<Configure>", lambda _event: self._draw_scene())
         self.canvas.bind("<Button-1>", self._on_left_down)
@@ -198,9 +188,7 @@ class DCCViewer(tk.Tk):
         inspector.grid_propagate(False)
         inspector.columnconfigure(0, weight=1)
 
-        ttk.Label(inspector, text="Inspector", style="PanelHeader.TLabel").grid(
-            row=0, column=0, sticky="w"
-        )
+        ttk.Label(inspector, text="Inspector", style="PanelHeader.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
             inspector,
             text="Viewer is a tool surface. Use --pipeline to choose a simulation, and add --viewer only when you want the visual inspector.",
@@ -216,12 +204,8 @@ class DCCViewer(tk.Tk):
         self.inspector_note = self._add_field(inspector, 6, "Notes", wrap=True)
 
         ttk.Separator(inspector).grid(row=7, column=0, sticky="ew", pady=18)
-        ttk.Label(inspector, text="Scene Stats", style="PanelHeader.TLabel").grid(
-            row=8, column=0, sticky="w"
-        )
-        self.scene_stats = ttk.Label(
-            inspector, style="PanelBody.TLabel", justify="left", wraplength=280
-        )
+        ttk.Label(inspector, text="Scene Stats", style="PanelHeader.TLabel").grid(row=8, column=0, sticky="w")
+        self.scene_stats = ttk.Label(inspector, style="PanelBody.TLabel", justify="left", wraplength=280)
         self.scene_stats.grid(row=9, column=0, sticky="ew", pady=(8, 0))
 
         status = ttk.Frame(self, style="Root.TFrame", padding=(16, 0, 16, 12))
@@ -231,22 +215,13 @@ class DCCViewer(tk.Tk):
         self.status_text = ttk.Label(status, style="Status.TLabel")
         self.status_text.grid(row=0, column=0, sticky="w")
 
-    def _add_field(
-        self, parent: ttk.Frame, row: int, title: str, wrap: bool = False
-    ) -> ttk.Label:
+    def _add_field(self, parent: ttk.Frame, row: int, title: str, wrap: bool = False) -> ttk.Label:
         group = ttk.Frame(parent, style="Panel.TFrame")
         group.grid(row=row, column=0, sticky="ew", pady=(0, 14))
         group.columnconfigure(0, weight=1)
 
-        ttk.Label(group, text=title.upper(), style="PanelBody.TLabel").grid(
-            row=0, column=0, sticky="w"
-        )
-        value = ttk.Label(
-            group,
-            style="PanelValue.TLabel",
-            wraplength=280 if wrap else 0,
-            justify="left",
-        )
+        ttk.Label(group, text=title.upper(), style="PanelBody.TLabel").grid(row=0, column=0, sticky="w")
+        value = ttk.Label(group, style="PanelValue.TLabel", wraplength=280 if wrap else 0, justify="left")
         value.grid(row=1, column=0, sticky="ew", pady=(4, 0))
         return value
 
@@ -299,9 +274,7 @@ class DCCViewer(tk.Tk):
 
         projected_corners = [point for point in corners if point is not None]
         coords = [value for point in projected_corners for value in point]
-        self.canvas.create_polygon(
-            *coords, fill=GROUND_FILL, outline="#29303a", width=2
-        )
+        self.canvas.create_polygon(*coords, fill=GROUND_FILL, outline="#29303a", width=2)
 
     def _draw_grid(self) -> None:
         for value in range(-8, 9):
@@ -315,17 +288,7 @@ class DCCViewer(tk.Tk):
         self._draw_world_line(0.0, 0.0, 0.0, 0.0, 1.8, 0.0, AXIS_Y, 3)
         self._draw_world_line(0.0, 0.0, 0.0, 0.0, 0.0, 1.8, AXIS_Z, 3)
 
-    def _draw_world_line(
-        self,
-        x1: float,
-        y1: float,
-        z1: float,
-        x2: float,
-        y2: float,
-        z2: float,
-        color: str,
-        width: int,
-    ) -> None:
+    def _draw_world_line(self, x1: float, y1: float, z1: float, x2: float, y2: float, z2: float, color: str, width: int) -> None:
         p1 = self.project_point(x1, y1, z1)
         p2 = self.project_point(x2, y2, z2)
         if p1 is None or p2 is None:
@@ -365,16 +328,12 @@ class DCCViewer(tk.Tk):
 
     def _draw_particle(self, index: int, screen_x: float, screen_y: float) -> None:
         pos = self.positions[index]
-        depth = max(
-            0.6, self.camera_space(float(pos[0]), float(pos[1]), float(pos[2]))[2]
-        )
+        depth = max(0.6, self.camera_space(float(pos[0]), float(pos[1]), float(pos[2]))[2])
         radius = max(3.0, 10.0 / depth)
         is_pinned = len(self.inv_mass) > index and self.inv_mass[index] == 0.0
         is_selected = self.selected.kind == "particle" and self.selected.index == index
         fill = PINNED_POINT if is_pinned else CLOTH_POINT
-        outline = (
-            SELECTION if is_selected else (PINNED_POINT if is_pinned else CLOTH_LINE)
-        )
+        outline = SELECTION if is_selected else (PINNED_POINT if is_pinned else CLOTH_LINE)
         border_width = 3 if is_selected else 1
         self.canvas.create_oval(
             screen_x - radius,
@@ -387,74 +346,30 @@ class DCCViewer(tk.Tk):
         )
 
     def _draw_overlay(self, width: int, height: int) -> None:
-        self.canvas.create_text(
-            18,
-            18,
-            anchor="nw",
-            text=f"Perspective / {self.scene_name}",
-            fill=TEXT_MUTED,
-            font=("Segoe UI", 10),
-        )
-        self.canvas.create_rectangle(
-            width - 244, 16, width - 16, 84, fill="#171b20", outline="#39414a"
-        )
-        self.canvas.create_text(
-            width - 130,
-            32,
-            text=f"Frame {self.frame_index:04d}",
-            fill=TEXT_PRIMARY,
-            font=("Consolas", 10),
-        )
-        state_text = (
-            "Playing"
-            if self.is_playing and self.scene is not None
-            else ("Paused" if self.scene is not None else "Tool Idle")
-        )
-        self.canvas.create_text(
-            width - 130, 50, text=state_text, fill=TEXT_PRIMARY, font=("Consolas", 10)
-        )
-        self.canvas.create_text(
-            width - 130,
-            68,
-            text=f"CamDist {self.camera_distance:.2f}",
-            fill=TEXT_MUTED,
-            font=("Consolas", 9),
-        )
+        self.canvas.create_text(18, 18, anchor="nw", text=f"Perspective / {self.scene_name}", fill=TEXT_MUTED, font=("Segoe UI", 10))
+        self.canvas.create_rectangle(width - 244, 16, width - 16, 84, fill="#171b20", outline="#39414a")
+        self.canvas.create_text(width - 130, 32, text=f"Frame {self.frame_index:04d}", fill=TEXT_PRIMARY, font=("Consolas", 10))
+        state_text = "Playing" if self.is_playing and self.scene is not None else ("Paused" if self.scene is not None else "Tool Idle")
+        self.canvas.create_text(width - 130, 50, text=state_text, fill=TEXT_PRIMARY, font=("Consolas", 10))
+        self.canvas.create_text(width - 130, 68, text=f"CamDist {self.camera_distance:.2f}", fill=TEXT_MUTED, font=("Consolas", 9))
 
     def _refresh_inspector(self) -> None:
-        if self.selected.kind == "particle" and 0 <= self.selected.index < len(
-            self.positions
-        ):
+        if self.selected.kind == "particle" and 0 <= self.selected.index < len(self.positions):
             pos = self.positions[self.selected.index]
             velocity = self.velocities[self.selected.index]
-            pinned = (
-                len(self.inv_mass) > self.selected.index
-                and self.inv_mass[self.selected.index] == 0.0
-            )
+            pinned = len(self.inv_mass) > self.selected.index and self.inv_mass[self.selected.index] == 0.0
             self.inspector_name.configure(text=self.selected.name)
             self.inspector_type.configure(text="Particle")
-            self.inspector_position.configure(
-                text=f"X {pos[0]:.3f}, Y {pos[1]:.3f}, Z {pos[2]:.3f}"
-            )
-            self.inspector_state.configure(
-                text=f"vel {np.linalg.norm(velocity):.3f} | pinned {str(bool(pinned)).lower()}"
-            )
+            self.inspector_position.configure(text=f"X {pos[0]:.3f}, Y {pos[1]:.3f}, Z {pos[2]:.3f}")
+            self.inspector_state.configure(text=f"vel {np.linalg.norm(velocity):.3f} | pinned {str(bool(pinned)).lower()}")
             self.inspector_note.configure(text=self.selected.note)
         elif len(self.positions) > 0:
             center = self.positions.mean(axis=0)
-            constraint_count = max(
-                0,
-                (self.grid_width - 1) * self.grid_height
-                + (self.grid_height - 1) * self.grid_width,
-            )
+            constraint_count = max(0, (self.grid_width - 1) * self.grid_height + (self.grid_height - 1) * self.grid_width)
             self.inspector_name.configure(text=self.scene_name)
             self.inspector_type.configure(text="System")
-            self.inspector_position.configure(
-                text=f"Center X {center[0]:.3f}, Y {center[1]:.3f}, Z {center[2]:.3f}"
-            )
-            self.inspector_state.configure(
-                text=f"particles {len(self.positions)} | constraints {constraint_count}"
-            )
+            self.inspector_position.configure(text=f"Center X {center[0]:.3f}, Y {center[1]:.3f}, Z {center[2]:.3f}")
+            self.inspector_state.configure(text=f"particles {len(self.positions)} | constraints {constraint_count}")
             self.inspector_note.configure(text=self.selected.note)
         else:
             self.inspector_name.configure(text=self.scene_name)
@@ -487,11 +402,7 @@ class DCCViewer(tk.Tk):
 
     def _update_status(self) -> None:
         selected_name = self.selected.name
-        state = (
-            "playing"
-            if self.is_playing and self.scene is not None
-            else ("paused" if self.scene is not None else "idle")
-        )
+        state = "playing" if self.is_playing and self.scene is not None else ("paused" if self.scene is not None else "idle")
         self.status_text.configure(
             text=(
                 f"Selected: {selected_name}  |  "
@@ -504,11 +415,9 @@ class DCCViewer(tk.Tk):
     def _camera_position(self) -> tuple[float, float, float]:
         cos_pitch = math.cos(self.camera_pitch)
         return (
-            self.target_x
-            + self.camera_distance * math.sin(self.camera_yaw) * cos_pitch,
+            self.target_x + self.camera_distance * math.sin(self.camera_yaw) * cos_pitch,
             self.target_y + self.camera_distance * math.sin(self.camera_pitch),
-            self.target_z
-            + self.camera_distance * math.cos(self.camera_yaw) * cos_pitch,
+            self.target_z + self.camera_distance * math.cos(self.camera_yaw) * cos_pitch,
         )
 
     def camera_space(self, x: float, y: float, z: float) -> tuple[float, float, float]:
@@ -520,9 +429,7 @@ class DCCViewer(tk.Tk):
         forward_x = self.target_x - cam_x
         forward_y = self.target_y - cam_y
         forward_z = self.target_z - cam_z
-        forward_len = math.sqrt(
-            forward_x * forward_x + forward_y * forward_y + forward_z * forward_z
-        )
+        forward_len = math.sqrt(forward_x * forward_x + forward_y * forward_y + forward_z * forward_z)
         forward_x /= forward_len
         forward_y /= forward_len
         forward_z /= forward_len
@@ -551,9 +458,7 @@ class DCCViewer(tk.Tk):
         if cam_z <= 0.2:
             return None
         focal = min(width, height) * 0.9
-        return width * 0.5 + (cam_x / cam_z) * focal, height * 0.56 + (
-            cam_y / cam_z
-        ) * focal
+        return width * 0.5 + (cam_x / cam_z) * focal, height * 0.56 + (cam_y / cam_z) * focal
 
     def _pick_particle(self, screen_x: float, screen_y: float) -> int | None:
         if len(self.positions) == 0:
@@ -575,12 +480,7 @@ class DCCViewer(tk.Tk):
     def _on_left_down(self, event: tk.Event) -> None:
         picked = self._pick_particle(event.x, event.y)
         if picked is not None:
-            self.selected = PickInfo(
-                "particle",
-                picked,
-                f"Particle {picked}",
-                f"Particle view from {self.scene_name}.",
-            )
+            self.selected = PickInfo("particle", picked, f"Particle {picked}", f"Particle view from {self.scene_name}.")
             self._refresh_inspector()
             self._draw_scene()
             self.drag_mode = None
@@ -602,9 +502,7 @@ class DCCViewer(tk.Tk):
         dx = event.x - self.drag_start[0]
         dy = event.y - self.drag_start[1]
         self.camera_yaw += dx * 0.008
-        self.camera_pitch = min(
-            math.radians(80.0), max(math.radians(8.0), self.camera_pitch + dy * 0.006)
-        )
+        self.camera_pitch = min(math.radians(80.0), max(math.radians(8.0), self.camera_pitch + dy * 0.006))
         self.drag_start = (event.x, event.y)
         self._draw_scene()
 

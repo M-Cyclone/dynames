@@ -2,7 +2,7 @@ import taichi as ti
 
 
 @ti.kernel
-def predict_positions(
+def predict_positions(  # pyright: ignore[reportInvalidTypeForm]
     x: ti.template(),
     x_prev: ti.template(),
     v: ti.template(),
@@ -18,7 +18,7 @@ def predict_positions(
 
 
 @ti.kernel
-def update_velocities(
+def update_velocities(  # pyright: ignore[reportInvalidTypeForm]
     x: ti.template(),
     x_prev: ti.template(),
     v: ti.template(),

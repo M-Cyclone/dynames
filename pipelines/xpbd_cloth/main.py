@@ -22,7 +22,9 @@ def main() -> None:
             positions = particles.positions_numpy()
             center_index = positions.shape[0] // 2
             center = positions[center_index]
-            print(f"frame={frame:03d} center=({center[0]:.3f}, {center[1]:.3f}, {center[2]:.3f})")
+            print(
+                f"frame={frame:03d} center=({center[0]:.3f}, {center[1]:.3f}, {center[2]:.3f})"
+            )
 
     positions = particles.positions_numpy()
     print("XPBD cloth pipeline ready.")

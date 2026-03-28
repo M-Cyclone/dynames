@@ -2,13 +2,15 @@ import taichi as ti
 
 
 @ti.kernel
-def reset_lagrange_multipliers(lambdas: ti.template()):
+def reset_lagrange_multipliers(  # pyright: ignore[reportInvalidTypeForm]
+    lambdas: ti.template(),
+):
     for i in lambdas:
         lambdas[i] = 0.0
 
 
 @ti.kernel
-def solve_distance_constraints(
+def solve_distance_constraints(  # pyright: ignore[reportInvalidTypeForm]
     x: ti.template(),
     inv_mass: ti.template(),
     i0: ti.template(),
