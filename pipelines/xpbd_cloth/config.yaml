@@ -1,0 +1,7 @@
+cloth:
+  width: 12
+  height: 12
+  spacing: 0.18
+xpbd:
+  iterations: 12
+  dt: 0.0166666667
